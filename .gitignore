@@ -1,0 +1,20 @@
+# Arquivos de ambiente e senhas (Privacidade)
+.env
+
+# Ambientes Virtuais do Python
+venv/
+QA/venv/
+backend/venv/
+
+# Arquivos temporários e cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Pastas pesadas do Node/Frontend
+node_modules/
+.next/
+out/
+
+# Arquivos ocultos do sistema macOS
+.DS_Store
