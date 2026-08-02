@@ -27,6 +27,16 @@ class ClienteCriar(BaseModel):
 class ClienteResposta(ClienteCriar):
     model_config = {"from_attributes": True}
 
+class ClienteAtualizar(BaseModel):
+    nome_completo: Optional[str] = None
+    nome_exibicao: Optional[str] = None
+    pronomes: Optional[str] = None
+    identidade_genero: Optional[str] = None
+    autodescricao: Optional[str] = None
+    telefone: Optional[str] = None
+    email: Optional[str] = None
+    status: Optional[str] = None
+
 
 class AnamneseCriar(BaseModel):
     id_cliente: str = Field(...,max_length=6, description="ID do cliente (ex: CL0001)")
