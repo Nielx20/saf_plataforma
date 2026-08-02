@@ -16,11 +16,8 @@ class Cliente(Base):
     telefone = Column(String)
     email = Column(String, unique=True, index=True)
     status = Column(String, default="Ativo")
-
-
     # Relacionamento: 1 Clientes pode ter N anamneses
     anamneses = relationship("Anamnese", back_populates="cliente", cascade="all, delete-orphan")
-
 
 class Anamnese(Base):
     __tablename__ = "tbAnamneses"
