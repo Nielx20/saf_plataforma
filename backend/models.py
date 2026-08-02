@@ -15,4 +15,3 @@ class Cliente(Base):
     telefone = Column(String)
     email = Column(String, unique=True, index=True)
     status = Column(String, default="Ativo")
-    
