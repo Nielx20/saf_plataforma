@@ -26,3 +26,18 @@ class ClienteCriar(BaseModel):
 
 class ClienteResposta(ClienteCriar):
     model_config = {"from_attributes": True}
+
+
+class AnamneseCriar(BaseModel):
+    id_cliente: str = Field(...,max_length=6, description="ID do cliente (ex: CL0001)")
+    data_anamnese: date
+    pratica_atividade_fisica: bool = False
+    historico_lesoes: Optional[str] = None
+    medicamentos_uso_continuo: Optional[str] = None
+    restricoes_medicas: Optional[str] = None
+    observacoes_gerais: Optional[str] = None
+
+class AnamneseResposta(AnamneseCriar):
+    id_anamnese: int
+
+    model_config = {"from_attributes": True}
