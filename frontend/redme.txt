@@ -1,0 +1,3 @@
+Frontend (/frontend)
+
+Copie api.ts, DataAuditScreen.tsx e DataAuditScreen.css para dentro do seu projeto React (ex: src/components/audit/) e use o componente:
