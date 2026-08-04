@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Date, Boolean, Text, ForeignKey, Integer
+from sqlalchemy import Column, String, Date, Boolean, Text, ForeignKey, Integer, Float
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -22,14 +22,83 @@ class Cliente(Base):
 class Anamnese(Base):
     __tablename__ = "tbAnamneses"
 
-    id_anamnese = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    id_cliente = Column(String(6), ForeignKey("tbClientes.id_cliente"), nullable=False, index=True)
-    
+    # ==========================================
+    # IDENTIFICAÇÃO E VERSIONAMENTO (A:G)
+    # ==========================================
+    id_anamnese = Column(String, primary_key=True, index=True)  # AN0001
+    id_cliente = Column(String, ForeignKey("tbClientes.id_cliente"), nullable=False, index=True)
     data_anamnese = Column(Date, nullable=False)
-    pratica_atividade_fisica = Column(Boolean, default=False)
-    historico_lesoes = Column(Text, nullable=True)
-    medicamentos_uso_continuo = Column(Text, nullable=True)
-    restricoes_medicas = Column(Text, nullable=True)
-    observacoes_gerais = Column(Text, nullable=True)
+    tipo_anamnese = Column(String, nullable=False)  # Inicial, Atualização periódica, etc.
+    id_anamnese_anterior = Column(String, nullable=True)
+    respondente = Column(String, nullable=False)  # Cliente, Responsável legal, etc.
+    profissional_responsavel = Column(String, nullable=False)
 
+    # ==========================================
+    # INSTRUMENTO E NÚCLEO UNIVERSAL
+    # ==========================================
+    instrumento_aplicado = Column(String, default="Não")  # Sim / Não
+    nome_instrumento = Column(String, nullable=True)
+    objetivo_relatado = Column(String, nullable=False)
+    expectativa_relatada = Column(String, nullable=True)
+    experiencia_previa_af = Column(String, nullable=True)
+    atividade_fisica_atual = Column(String, nullable=False)
+    frequencia_relatada = Column(String, nullable=True)
+    duracao_sessao_min = Column(Integer, nullable=True)
+    observacoes_rotina = Column(Text, nullable=True)
+
+    # ==========================================
+    # SAÚDE RELATADA E DOCUMENTOS
+    # ==========================================
+    condicao_saude = Column(String, default="Não")  # Sim, Não, Não sabe...
+    detalhe_condicoes = Column(Text, nullable=True)
+    uso_medicamentos = Column(String, default="Não")
+    detalhe_medicamentos = Column(Text, nullable=True)
+    lesao_cirurgia = Column(String, default="Não")
+    detalhe_lesao = Column(Text, nullable=True)
+    dor_atual = Column(String, default="Não")
+    local_dor = Column(String, nullable=True)
+    intensidade_dor = Column(Integer, nullable=True)  # 0 a 10
+    restricao_recomendacao = Column(String, default="Não")
+    detalhe_restricao = Column(Text, nullable=True)
+    documento_apresentado = Column(String, default="Não")
+
+    # ==========================================
+    # ESTILO DE VIDA E PERCEPÇÕES
+    # ==========================================
+    tabagismo = Column(String, default="Nunca fumou")
+    consumo_alcool = Column(String, default="Não consome")
+    horas_sono_noite = Column(Float, nullable=True)
+    qualidade_sono = Column(String, nullable=True)
+    estresse_percebido = Column(Integer, nullable=True)  # 0 a 10
+
+    # ==========================================
+    # MÓDULOS CONDICIONAIS (Sim/Não Operacional)
+    # ==========================================
+    modulo_crianca_adolescente = Column(String, default="Não")
+    detalhe_crianca_adolescente = Column(Text, nullable=True)
+    modulo_autonomia_funcional = Column(String, default="Não")
+    detalhe_autonomia = Column(Text, nullable=True)
+    modulo_gestacao = Column(String, default="Não")
+    detalhe_gestacao = Column(Text, nullable=True)
+    modulo_acessibilidade = Column(String, default="Não")
+    detalhe_acessibilidade = Column(Text, nullable=True)
+    modulo_performance = Column(String, default="Não")
+    detalhe_performance = Column(Text, nullable=True)
+    modulo_retorno_afastamento = Column(String, default="Não")
+    detalhe_retorno = Column(Text, nullable=True)
+
+    # ==========================================
+    # DECISÃO PROFISSIONAL E AUDITORIA
+    # ==========================================
+    encaminhamento = Column(String, default="Não identificado")
+    motivo_encaminhamento = Column(Text, nullable=True)
+    conduta_inicial = Column(String, default="Prosseguir")
+    detalhe_conduta = Column(Text, nullable=True)
+    adaptacoes_previstas = Column(Text, nullable=True)
+    status_anamnese = Column(String, default="Incompleta")  # Completa, Incompleta, Revisão necessária
+    data_arquivamento = Column(Date, nullable=True)
+    auditoria_realizada = Column(String, default="Não")
+    observacoes_auditoria = Column(Text, nullable=True)
+
+    # Relacionamento de volta com a tabela de Clientes
     cliente = relationship("Cliente", back_populates="anamneses")
