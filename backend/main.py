@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import models
 from database import engine
-from routers import calculos, clientes, anamnese  # <- importamos anamnese
+from routers import calculos, clientes, anamnese  
 
 # Garante a criação das tabelas no PostgreSQL
 models.Base.metadata.create_all(bind=engine)
