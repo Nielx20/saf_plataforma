@@ -9,6 +9,11 @@ router = APIRouter(
     tags=["Banco de Clientes (tbClientes)"]
 )
 
+@router.get("", response_model=list[ClienteResposta])
+def listar_clientes(db: Session = Depends(get_db)):
+    clientes = db.query(models.Cliente).all()
+    return clientes
+
 @router.post("", response_model=ClienteResposta)
 def criar_cliente(cliente: ClienteCriar, db: Session = Depends(get_db)):
     cliente_existente = db.query(models.Cliente).filter(
