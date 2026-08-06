@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, constr
 from typing import Optional
 from datetime import date
 
@@ -160,3 +160,44 @@ class AnamneseResposta(AnamneseBase):
 
     class Config:
         from_attributes = True
+
+
+class AvaliacaoBase(BaseModel):
+    id_avaliacao: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(
+        ..., example="AV0001", description="Identificador único da avaliação física"
+    )
+    id_cliente: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(
+        ..., example="CL0001", description="ID do cliente titular"
+    )
+    id_anamnese: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(
+        ..., example="AN0001", description="ID da anamnese vigente para esta avaliação"
+    )
+    data_avaliacao: date = Field(..., example="2026-08-05")
+    profissional_responsavel: constr(strip_whitespace=True, min_length=2, max_length=100) = Field(
+        ..., example="Prof. Carlos Eduardo"
+    )
+    status_avaliacao: Optional[str] = Field(
+        default="Em Andamento", example="Concluida", description="Status atual do teste"
+    )
+    observacoes_gerais: Optional[str] = Field(
+        default=None, example="Cliente bem condicionado, realizou os testes sem restrições."
+    )
+
+class AvaliacaoCreate(AvaliacaoBase):
+    """Schema de entrada para POST (Cadastro)"""
+    pass
+
+class AvaliacaoUpdate(BaseModel):
+    """Schema para atualização parcial (PUT/PATCH)"""
+    data_avaliacao: Optional[date] = None
+    profissional_responsavel: Optional[str] = None
+    status_avaliacao: Optional[str] = None
+    observacoes_gerais: Optional[str] = None
+
+class AvaliacaoResponse(AvaliacaoBase):
+    """Schema de saída (ORM mode ativado)"""
+    class Config:
+        from_attributes = True  # Para Pydantic v2 (antigo orm_mode=True)
+
+
+

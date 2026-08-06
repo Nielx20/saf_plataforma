@@ -82,6 +82,10 @@ def deletar_cliente(contexto, id_cliente):
 # =====================================================================
 @then(parsers.parse('o sistema deve retornar o status de sucesso {status:d}'))
 def valida_status_sucesso(contexto, status):
+    print("\n--- QUEM RESPONDEU? ---")
+    print("Headers:", contexto["resposta"].headers)
+    print("Conteúdo:", contexto["resposta"].text[:100])
+
     assert contexto["resposta"].status_code == status
 
 @then(parsers.parse('o sistema deve retornar o status de erro {status:d} com a mensagem "{mensagem}"'))

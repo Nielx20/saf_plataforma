@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import models
 from database import engine
-from routers import calculos, clientes, anamnese  
+from routers import calculos, clientes, anamnese, avaliacoes
 
 # Garante a criação das tabelas no PostgreSQL
 models.Base.metadata.create_all(bind=engine)
@@ -14,3 +14,4 @@ app = FastAPI(
 app.include_router(calculos.router)
 app.include_router(clientes.router)
 app.include_router(anamnese.router)  
+app.include_router(avaliacoes.router)

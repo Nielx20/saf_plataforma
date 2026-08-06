@@ -18,6 +18,7 @@ class Cliente(Base):
     status = Column(String, default="Ativo")
     # Relacionamento: 1 Clientes pode ter N anamneses
     anamneses = relationship("Anamnese", back_populates="cliente", cascade="all, delete-orphan")
+    avaliacoes = relationship("Avaliacao", back_populates="cliente", cascade="all, delete-orphan")
 
 class Anamnese(Base):
     __tablename__ = "tbAnamneses"
@@ -102,3 +103,31 @@ class Anamnese(Base):
 
     # Relacionamento de volta com a tabela de Clientes
     cliente = relationship("Cliente", back_populates="anamneses")
+    avaliacoes = relationship("Avaliacao", back_populates="anamnese")
+
+
+class Avaliacao(Base):
+    """
+    Cabeçalho de uma sessão de Avaliação Física (tbAvaliacoes).
+    Vincula um cliente e sua anamnese vigente aos protocolos e medidas coletadas.
+    """
+    __tablename__ = "tbAvaliacoes"
+
+    # Chaves e Identificadores
+    id_avaliacao = Column(String(10), primary_key=True, index=True)  # Ex: "AV0001"
+    id_cliente = Column(String(10), ForeignKey("tbClientes.id_cliente", ondelete="CASCADE"), nullable=False)
+    id_anamnese = Column(String(10), ForeignKey("tbAnamneses.id_anamnese"), nullable=False)
+
+    # Metadados da Sessão
+    data_avaliacao = Column(Date, nullable=False)
+    profissional_responsavel = Column(String(100), nullable=False)
+    status_avaliacao = Column(String(30), default="Em Andamento")  # Ex: "Em Andamento", "Concluida", "Revisada"
+    observacoes_gerais = Column(Text, nullable=True)
+
+    # Navegação do SQLAlchemy ORM
+    cliente = relationship("Cliente", back_populates="avaliacoes")
+    anamnese = relationship("Anamnese", back_populates="avaliacoes")
+
+    # Futuros relacionamentos com protocolos aplicados e medidas longas:
+    # protocolos_aplicados = relationship("ProtocoloAplicado", back_populates="avaliacao", cascade="all, delete-orphan")
+    # medidas = relationship("Medida", back_populates="avaliacao", cascade="all, delete-orphan")
