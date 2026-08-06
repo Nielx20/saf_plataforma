@@ -3,14 +3,6 @@ from pydantic import BaseModel, Field, constr
 from typing import Optional
 from datetime import date
 
-class SolicitacaoIMC(BaseModel):
-    # Field garante as regras de validação antes mesmo do cálculo acontecer
-    peso: float = Field(..., ge=20, le=300, description="Peso do cliente em kg")
-    altura: float = Field(..., gt=0, le=3.0, description="Altura do cliente em metros")
-
-class RespostaIMC(BaseModel):
-    imc: float
-
 class ClienteCriar(BaseModel):
     id_cliente: str = Field(..., max_length = 6, description = "Formato fixo e único, ex: CL0001")
     nome_completo: str
@@ -200,4 +192,108 @@ class AvaliacaoResponse(AvaliacaoBase):
         from_attributes = True  # Para Pydantic v2 (antigo orm_mode=True)
 
 
+# =====================================================================
+# SCHEMAS: PROTOCOLOS APLICADOS (tbProtocolosAplicados)
+# =====================================================================
+class ProtocoloAplicadoBase(BaseModel):
+    id_protocolo_aplicado: constr(strip_whitespace=True, min_length=1, max_length=15) = Field(
+        ..., example="PA00001", description="ID único do protocolo aplicado na avaliação"
+    )
+    id_avaliacao: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(
+        ..., example="AV0001", description="ID da avaliação física titular"
+    )
+    id_protocolo: constr(strip_whitespace=True, min_length=1, max_length=30) = Field(
+        ..., example="CC-JP7", description="Código do protocolo (ex: CC-JP7, CR-COOPER12)"
+    )
+    status_execucao: Optional[str] = Field(default="Concluido", example="Concluido")
+    observacoes: Optional[str] = Field(default=None, example="Dobras cutâneas mensuradas no lado direito")
+
+class ProtocoloAplicadoCreate(ProtocoloAplicadoBase):
+    pass
+
+class ProtocoloAplicadoResponse(ProtocoloAplicadoBase):
+    class Config:
+        from_attributes = True
+
+
+# =====================================================================
+# SCHEMAS: MEDIDAS - FORMATO LONGO (tbMedidas)
+# =====================================================================
+class MedidaBase(BaseModel):
+    id_medida: constr(strip_whitespace=True, min_length=1, max_length=15) = Field(
+        ..., example="MD00001", description="ID único da medição"
+    )
+    id_avaliacao: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(
+        ..., example="AV0001", description="ID da avaliação física titular"
+    )
+    id_variavel: constr(strip_whitespace=True, min_length=1, max_length=30) = Field(
+        ..., example="PESO", description="Variável antropométrica, funcional ou calculada (ex: PESO, ALTURA, IMC)"
+    )
+    valor_revisado: float = Field(..., example=72.5, description="Valor final da medida")
+    unidade: constr(strip_whitespace=True, min_length=1, max_length=15) = Field(
+        ..., example="kg", description="Unidade de medida (ex: kg, cm, mm)"
+    )
+    origem: Optional[str] = Field(default="Medido", example="Medido", description="Medido | Calculado | Importado")
+    qualidade: Optional[str] = Field(default="Aprovado", example="Aprovado")
+
+class MedidaCreate(MedidaBase):
+    pass
+
+class MedidaUpdate(BaseModel):
+    valor_revisado: Optional[float] = None
+    qualidade: Optional[str] = None
+    origem: Optional[str] = None
+
+class MedidaResponse(MedidaBase):
+    class Config:
+        from_attributes = True
+
+
+# =====================================================================
+# SCHEMAS: CATÁLOGOS E DOMÍNIOS (tbDominiosAvaliacao, tbProtocolos, tbCatalogoMedidas)
+# =====================================================================
+
+class DominioAvaliacaoBase(BaseModel):
+    id_dominio: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(..., example="CC")
+    nome_dominio: constr(strip_whitespace=True, min_length=2, max_length=100) = Field(..., example="Composição Corporal")
+    descricao: Optional[str] = Field(default=None, example="Aferição de dobras cutâneas e perímetros.")
+
+class DominioAvaliacaoCreate(DominioAvaliacaoBase):
+    pass
+
+class DominioAvaliacaoResponse(DominioAvaliacaoBase):
+    class Config:
+        from_attributes = True
+
+
+class ProtocoloBase(BaseModel):
+    id_protocolo: constr(strip_whitespace=True, min_length=1, max_length=30) = Field(..., example="CC-JP7")
+    id_dominio: constr(strip_whitespace=True, min_length=1, max_length=10) = Field(..., example="CC")
+    nome_metodo: constr(strip_whitespace=True, min_length=2, max_length=150) = Field(..., example="Jackson & Pollock (7 Dobras)")
+    publicacao_referencia: Optional[str] = Field(default=None, example="Jackson, A.S., & Pollock, M.L. (1978)")
+    formula_aplicada: Optional[str] = Field(default=None, example="Densidade Corporal -> Siri (1956)")
+
+class ProtocoloCreate(ProtocoloBase):
+    pass
+
+class ProtocoloResponse(ProtocoloBase):
+    class Config:
+        from_attributes = True
+
+
+class CatalogoMedidaBase(BaseModel):
+    id_variavel: constr(strip_whitespace=True, min_length=1, max_length=30) = Field(..., example="DC_TRICEPS")
+    id_protocolo: Optional[str] = Field(default=None, example="CC-JP7")
+    nome_variavel: constr(strip_whitespace=True, min_length=2, max_length=100) = Field(..., example="Dobra Cutânea - Tríceps")
+    unidade_medida: constr(strip_whitespace=True, min_length=1, max_length=15) = Field(..., example="mm")
+    tipo_medida: Optional[str] = Field(default="Bruta", example="Bruta")
+    valor_minimo: Optional[float] = Field(default=2.0, example=2.0)
+    valor_maximo: Optional[float] = Field(default=80.0, example=80.0)
+
+class CatalogoMedidaCreate(CatalogoMedidaBase):
+    pass
+
+class CatalogoMedidaResponse(CatalogoMedidaBase):
+    class Config:
+        from_attributes = True
 

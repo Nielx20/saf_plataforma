@@ -127,7 +127,92 @@ class Avaliacao(Base):
     # Navegação do SQLAlchemy ORM
     cliente = relationship("Cliente", back_populates="avaliacoes")
     anamnese = relationship("Anamnese", back_populates="avaliacoes")
+    protocolos_aplicados = relationship("ProtocoloAplicado", back_populates="avaliacao", cascade="all, delete-orphan")
+    medidas = relationship("Medida", back_populates="avaliacao", cascade="all, delete-orphan")
 
-    # Futuros relacionamentos com protocolos aplicados e medidas longas:
-    # protocolos_aplicados = relationship("ProtocoloAplicado", back_populates="avaliacao", cascade="all, delete-orphan")
-    # medidas = relationship("Medida", back_populates="avaliacao", cascade="all, delete-orphan")
+class ProtocoloAplicado(Base):
+    """
+    Registra quais métodos/protocolos foram selecionados em uma Avaliação Física (tbProtocolosAplicados).
+    Ex: 'CC-JP7' (Jackson-Pollock 7 dobras), 'CR-COOPER12' (Cooper 12 min).
+    """
+    __tablename__ = "tbProtocolosAplicados"
+
+    id_protocolo_aplicado = Column(String(15), primary_key=True, index=True)  # Ex: "PA00001"
+    id_avaliacao = Column(String(10), ForeignKey("tbAvaliacoes.id_avaliacao", ondelete="CASCADE"), nullable=False)
+    id_protocolo = Column(String(30), nullable=False)  # Código do protocolo (ex: "CC-JP7")
+    status_execucao = Column(String(30), default="Concluido")  # "Concluido", "Pendente", "Cancelado"
+    observacoes = Column(Text, nullable=True)
+
+    # Relacionamento com a Avaliação titular
+    avaliacao = relationship("Avaliacao", back_populates="protocolos_aplicados")
+
+
+class Medida(Base):
+    """
+    Banco de Aferições no formato longo (tbMedidas).
+    Cada linha representa uma variável (medida bruta ou resultado calculado) vinculada à avaliação.
+    """
+    __tablename__ = "tbMedidas"
+
+    id_medida = Column(String(15), primary_key=True, index=True)  # Ex: "MD00001"
+    id_avaliacao = Column(String(10), ForeignKey("tbAvaliacoes.id_avaliacao", ondelete="CASCADE"), nullable=False)
+    id_variavel = Column(String(30), nullable=False, index=True)  # Ex: "PESO", "ALTURA", "DC_TRICEPS", "IMC"
+    valor_revisado = Column(Float, nullable=False)
+    unidade = Column(String(15), nullable=False)  # Ex: "kg", "cm", "mm", "kg/m2"
+    origem = Column(String(20), default="Medido")  # "Medido", "Calculado", "Importado"
+    qualidade = Column(String(20), default="Aprovado")  # "Aprovado", "Alerta", "Rejeitado"
+
+    # Relacionamento com a Avaliação titular
+    avaliacao = relationship("Avaliacao", back_populates="medidas")
+
+
+class DominioAvaliacao(Base):
+    """
+    Catálogo dos grandes domínios da avaliação física (tbDominiosAvaliacao).
+    Ex: 'ANT' (Antropometria), 'CC' (Composição Corporal), 'CR' (Cardiorrespiratória).
+    """
+    __tablename__ = "tbDominiosAvaliacao"
+
+    id_dominio = Column(String(10), primary_key=True, index=True)  # Ex: "ANT", "CC", "CR"
+    nome_dominio = Column(String(100), nullable=False)
+    descricao = Column(Text, nullable=True)
+
+    # Relacionamento com Protocolos
+    protocolos = relationship("Protocolo", back_populates="dominio", cascade="all, delete-orphan")
+
+
+class Protocolo(Base):
+    """
+    Catálogo de métodos/protocolos disponíveis no sistema (tbProtocolos).
+    Ex: 'CC-JP7' (Jackson-Pollock 7 dobras), 'CR-COOPER12' (Cooper 12 min).
+    """
+    __tablename__ = "tbProtocolos"
+
+    id_protocolo = Column(String(30), primary_key=True, index=True)  # Ex: "CC-JP7"
+    id_dominio = Column(String(10), ForeignKey("tbDominiosAvaliacao.id_dominio", ondelete="CASCADE"), nullable=False)
+    nome_metodo = Column(String(150), nullable=False)
+    publicacao_referencia = Column(String(200), nullable=True)  # Autor/Ano literário
+    formula_aplicada = Column(Text, nullable=True)  # Descrição ou tag de engine do cálculo
+
+    # Relacionamentos
+    dominio = relationship("DominioAvaliacao", back_populates="protocolos")
+    variaveis_catalogo = relationship("CatalogoMedida", back_populates="protocolo", cascade="all, delete-orphan")
+
+
+class CatalogoMedida(Base):
+    """
+    Dicionário de variáveis e siglas de medidas do sistema (tbCatalogoMedidas).
+    Define unidade padrão e limites biológicos para validação de qualidade no front/back.
+    """
+    __tablename__ = "tbCatalogoMedidas"
+
+    id_variavel = Column(String(30), primary_key=True, index=True)  # Ex: "PESO", "ALTURA", "DC_TRICEPS"
+    id_protocolo = Column(String(30), ForeignKey("tbProtocolos.id_protocolo", ondelete="CASCADE"), nullable=True)
+    nome_variavel = Column(String(100), nullable=False)
+    unidade_medida = Column(String(15), nullable=False)  # Ex: "kg", "cm", "mm", "%"
+    tipo_medida = Column(String(20), default="Bruta")  # "Bruta" | "Calculada"
+    valor_minimo = Column(Float, nullable=True)  # Para alarme de erro de digitação
+    valor_maximo = Column(Float, nullable=True)
+
+    # Relacionamento
+    protocolo = relationship("Protocolo", back_populates="variaveis_catalogo")
